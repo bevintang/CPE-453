@@ -111,7 +111,7 @@ void run() {
 
 int main(void) {
 	serial_init();
-	clear_screen();
+	print_name(2, 1);
 	print_rc(2, 1);
 	run();
 }

@@ -165,6 +165,6 @@ int mapHex(uint32_t c) {
         return c;
     }
     else {
-        return c + 16;
+        return c + 7;
     }
 }
