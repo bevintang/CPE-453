@@ -63,9 +63,10 @@ void clear_screen() {
     // Clear contents
     write_byte(0x1B);
     write_byte('[');
+    print_int(2);
 
     // Move cursor back to home position
-    write_byte('H');
+    write_byte('J');
 }
 
 /*
@@ -130,7 +131,6 @@ void set_color(uint8_t color) {
     print_int(color);
     write_byte('m');
 }
-
 
 /** --------------- HELPER FUNCTIONS ---------------- **/
 /*

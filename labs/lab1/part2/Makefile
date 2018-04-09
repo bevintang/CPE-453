@@ -9,8 +9,8 @@ DEVICE = /dev/tty.usbmodem1421
 #DEVICE = COM3 
 
 #default target to compile the code
-main: main.c serial.c 
-	avr-gcc -mmcu=atmega2560 -DF_CPU=16000000 -O2 -o main.elf main.c serial.c
+main: lab1_part2.c serial.c 
+	avr-gcc -mmcu=atmega2560 -DF_CPU=16000000 -O2 -o main.elf lab1_part2.c serial.c
 	avr-objcopy -O ihex main.elf main.hex
 	avr-size main.elf
 
