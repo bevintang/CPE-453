@@ -12,6 +12,24 @@ typedef struct h{
 /* Global Linked list of Headers */
 Header* linkedHeaders = NULL;
 
+size_t div16(size_t size) {
+	uint8_t remainder;
+	if ((remainder = size % 16) !=0 )
+		size += 16 - remainder;
+	return size;
+}
+
+Header* div16Ptr(Header* ptr) {
+	uintptr_t addr = (uintptr_t)ptr;
+	uint8_t remainder;
+	if ((remainder = addr % 16) != 0)
+		addr += 16 - remainder;
+
+	printf("%p\n", ptr);
+	printf("%p\n", (Header*)addr);
+	return (Header *)addr;
+}
+
 /**
  *
 	If the size can fit in an existing header, return that header's location. 
@@ -43,7 +61,8 @@ void* canFit(size_t size) {
 	}
 
 	/* Exit while loop if proper size is found: */
-	if (curHeadSize >= size) {
+	if (curHeadSize >= size && isFree) {
+		printf("Found proper size!\n");
 		return curHead;
 	}
 	/* Or size not found (i.e. next Header is NULL) */
@@ -86,11 +105,26 @@ void append(Header* newHeader) {
 	}
 }
 
+void my_free(void* ptr) {
+	/* find address in Linked list that is immediately before the specified ptr */
+	Header* toFree = (Header*)ptr;
+	Header* previous = linkedHeaders;
+	Header* current = linkedHeaders;
+
+	while (current->next < toFree){
+		previous = current;
+		current = current->next;
+	}
+	previous->free = 1;
+}
+
 void* my_malloc(size_t size) {
+	printf("\nMalloc called!\n");
 	Header* header;
+	size_t size16 = div16(size+16) + div16(sizeof(Header));
 	if ((header = canFit(size)) == NULL){
 		/* Ask for more memory using sbrk() */
-		header = sbrk(size + sizeof(Header));
+		header = div16Ptr(sbrk(size16));
 
 		/* Construct this new header */
 		header->size = size;
@@ -98,20 +132,24 @@ void* my_malloc(size_t size) {
 		header->next = NULL;
 
 		/* add this new header to the linked list */
-		printf("Trying to append...\n");
+		printf("No matches! Appending new header...\n");
 		append(header);
 	}
 	else {
 		header->free = 0;
 	}
+	printf("Header @ %p\n", header);
 	return ++header;	/* return start of actual data */
 }
 
-void my_free(void* ptr) {
-
-}
-
 int main(void) {
-	printf("%p\n", my_malloc(6400));
+	int* sample = my_malloc(16);
+	int* sample2 = my_malloc(16);
+	printf("Before free %p\n", sample);
+	printf("%p\n", sample2);
+	my_free(sample);
+	sample = my_malloc(16);
+	printf("After free %p\n", sample);
+
 	return 0;
 }
