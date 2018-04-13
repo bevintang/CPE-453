@@ -19,15 +19,21 @@ size_t div16(size_t size) {
 	return size;
 }
 
-Header* div16Ptr(Header* ptr) {
-	uintptr_t addr = (uintptr_t)ptr;
+void* div16Ptr(void* ptr) {
+	printf("Aligning pointer...\n");
+	printf("\tAddress before alignment: %p\n", ptr);	
+
+	size_t addr = (size_t)ptr;
 	uint8_t remainder;
+
 	if ((remainder = addr % 16) != 0)
 		addr += 16 - remainder;
 
-	printf("%p\n", ptr);
-	printf("%p\n", (Header*)addr);
-	return (Header *)addr;
+	ptr = (void*) addr;
+
+	printf("\tAddress after alignment:  0x%lx\n", addr);
+	printf("\tAddress after alignment:  %p\n", ptr);
+	return ptr;
 }
 
 /**
@@ -37,6 +43,7 @@ Header* div16Ptr(Header* ptr) {
  *
 **/
 void* canFit(size_t size) {
+	printf("Checking for requested size...\n");
 
 	/* Track the traversal of linked list */
 	Header* curHead;
@@ -45,7 +52,7 @@ void* canFit(size_t size) {
 
 	/* Check if there are even any entries in the linked list */
 	if (linkedHeaders == NULL){
-		printf("Linked list is empty\n");
+		printf("\tLinked list is empty. Will append new header.\n");
 		return NULL;
 	}
 
@@ -62,11 +69,12 @@ void* canFit(size_t size) {
 
 	/* Exit while loop if proper size is found: */
 	if (curHeadSize >= size && isFree) {
-		printf("Found proper size!\n");
+		printf("\tFound proper size!\n");
 		return curHead;
 	}
 	/* Or size not found (i.e. next Header is NULL) */
 	else{
+		printf("\tNo matches!\n");
 		return NULL;
 	}
 }
@@ -95,6 +103,7 @@ void* lastNode() {
  *
 **/
 void append(Header* newHeader) {
+	printf("\tAppending new header...\n");
 	Header* tail = lastNode();
 	/* Check if the linked list is empty */
 	if (tail == NULL){
@@ -106,7 +115,7 @@ void append(Header* newHeader) {
 }
 
 void my_free(void* ptr) {
-	/* find address in Linked list that is immediately before the specified ptr */
+	/* find address in Linked list that is immediately before the desired ptr */
 	Header* toFree = (Header*)ptr;
 	Header* previous = linkedHeaders;
 	Header* current = linkedHeaders;
@@ -119,12 +128,11 @@ void my_free(void* ptr) {
 }
 
 void* my_malloc(size_t size) {
-	printf("\nMalloc called!\n");
 	Header* header;
 	size_t size16 = div16(size+16) + div16(sizeof(Header));
 	if ((header = canFit(size)) == NULL){
 		/* Ask for more memory using sbrk() */
-		header = div16Ptr(sbrk(size16));
+		header = (Header*)div16Ptr(sbrk(size16));
 
 		/* Construct this new header */
 		header->size = size;
@@ -132,24 +140,35 @@ void* my_malloc(size_t size) {
 		header->next = NULL;
 
 		/* add this new header to the linked list */
-		printf("No matches! Appending new header...\n");
 		append(header);
 	}
 	else {
 		header->free = 0;
 	}
-	printf("Header @ %p\n", header);
+	printf("NEW HEADER: %p\n\n\n", header);
 	return ++header;	/* return start of actual data */
 }
 
 int main(void) {
-	int* sample = my_malloc(16);
+	int* sample1 = my_malloc(16);
 	int* sample2 = my_malloc(16);
-	printf("Before free %p\n", sample);
-	printf("%p\n", sample2);
-	my_free(sample);
-	sample = my_malloc(16);
-	printf("After free %p\n", sample);
+
+	/* These two addresses should be different */
+	printf("!!MAIN: Before free\n"); 
+	printf("!!MAIN: Sample1 %p\n", sample1);
+	printf("!!MAIN: Sample2 %p\n", sample2);
+
+	/* Remalloc sample1 */
+	my_free(sample1);
+	sample1 = my_malloc(16);
+	printf("!!MAIN: After free %p\n", sample1);	/* Should be same address as original */
+
+	/* Add new headers to the end of linked list */
+	int* sample3 = my_malloc(64);
+	printf("!!MAIN: %p\n\n\n", sample3);
+
+
+
 
 	return 0;
 }
