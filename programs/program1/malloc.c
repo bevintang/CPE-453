@@ -2,37 +2,41 @@
 #include <stdint.h>
 #include <stdio.h>
 
-/* Struct of a Header (Linked List) */
+/** 
+ *
+	Struct of a Header (Linked List) 
+ *
+**/
 typedef struct h{
 	size_t size;
 	uint8_t free;
 	struct h* next;
 } Header;
 
-/* Global Linked list of Headers */
+/**
+ *
+	Global Linked list of Headers 
+ *
+**/
 Header* linkedHeaders = NULL;
 
-size_t div16(size_t size) {
-	uint8_t remainder;
-	if ((remainder = size % 16) !=0 )
-		size += 16 - remainder;
-	return size;
-}
-
+/**
+ *
+	Methods for both types size_t and void* to make sure each
+	number is divisble by 16.
+ *
+**/
 void* div16Ptr(void* ptr) {
-	printf("Aligning pointer...\n");
-	printf("\tAddress before alignment: %p\n", ptr);	
-
-	size_t addr = (size_t)ptr;
+	size_t addr = (size_t)ptr + sizeof(Header);
 	uint8_t remainder;
+
+	/* Avoid collision of header and data addresses if ptr is divisble by 16 */
 
 	if ((remainder = addr % 16) != 0)
 		addr += 16 - remainder;
 
 	ptr = (void*) addr;
 
-	printf("\tAddress after alignment:  0x%lx\n", addr);
-	printf("\tAddress after alignment:  %p\n", ptr);
 	return ptr;
 }
 
@@ -129,10 +133,10 @@ void my_free(void* ptr) {
 
 void* my_malloc(size_t size) {
 	Header* header;
-	size_t size16 = div16(size+16) + div16(sizeof(Header));
+	size_t size16 = size + sizeof(Header);
 	if ((header = canFit(size)) == NULL){
 		/* Ask for more memory using sbrk() */
-		header = (Header*)div16Ptr(sbrk(size16));
+		header = sbrk(size16);
 
 		/* Construct this new header */
 		header->size = size;
@@ -145,8 +149,9 @@ void* my_malloc(size_t size) {
 	else {
 		header->free = 0;
 	}
-	printf("NEW HEADER: %p\n\n\n", header);
-	return ++header;	/* return start of actual data */
+	printf("NEW HEADER: %p\n", header);
+	printf("DATA STARTS AT: %p\n\n\n", div16Ptr(header));
+	return div16Ptr(header);	/* return start of actual data */
 }
 
 int main(void) {
@@ -160,15 +165,13 @@ int main(void) {
 
 	/* Remalloc sample1 */
 	my_free(sample1);
-	sample1 = my_malloc(16);
-	printf("!!MAIN: After free %p\n", sample1);	/* Should be same address as original */
+	sample1 = my_malloc(160);
+	printf("!!MAIN: After free\n"); 
+	printf("!!MAIN: Sample1: %p\n", sample1);	/* Should be same address as original */
 
 	/* Add new headers to the end of linked list */
-	int* sample3 = my_malloc(64);
-	printf("!!MAIN: %p\n\n\n", sample3);
-
-
-
+	int* sample3 = my_malloc(65);
+	printf("!!MAIN: Sample3: %p\n\n\n", sample3);
 
 	return 0;
 }
