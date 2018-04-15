@@ -1,4 +1,5 @@
 #include <stdlib.h>
+#include <stdio.h>
 
 /*
 	Crappy driver
@@ -51,7 +52,7 @@ int main(void) {
 	printLinkedList();
 
 	printf("\n\nREALLOC nonexisting pointer 200\n");
-	int* sample1 = realloc(sample1, 20000);
+	sample1 = realloc(sample1, 20000);
 	printLinkedList();
 
 	return 0;

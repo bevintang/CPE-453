@@ -344,7 +344,7 @@ void* calloc(size_t nmemb, size_t size){
  				  start of the data segment.
  *
 **/
-void* (void* ptr, size_t size){
+void* realloc(void* ptr, size_t size){
 	Header* header;
 	void* srcData;
 	void* destData;
