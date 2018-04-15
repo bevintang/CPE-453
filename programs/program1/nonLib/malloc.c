@@ -262,7 +262,7 @@ Header* getClosest(void* ptr){
  	At the end of the call, defrag the memory.
  *
 **/
-void free(void* ptr) {
+void my_free(void* ptr) {
 	Header* current = linkedHeaders;
 	size_t endOfData = 0;
 
@@ -294,7 +294,7 @@ void free(void* ptr) {
  				  start of the data segment.
  *
 **/
-void* malloc(size_t size) {
+void* my_malloc(size_t size) {
 	Header* header;
 	size_t realSize = div16(size);
 	
@@ -319,14 +319,14 @@ void* malloc(size_t size) {
  				  start of the data segment.
  *
 **/
-void* calloc(size_t nmemb, size_t size){
+void* my_calloc(size_t nmemb, size_t size){
 	size_t realSize = div16(nmemb * size);
 	void* memStart;
 	if (overFlow(nmemb, size, MULTIPLY)){
 		return NULL;
 	}
 
-	memStart = malloc(realSize);
+	memStart = my_malloc(realSize);
 	memset(memStart, 0, realSize);
 
 	return memStart;
@@ -344,22 +344,22 @@ void* calloc(size_t nmemb, size_t size){
  				  start of the data segment.
  *
 **/
-void* (void* ptr, size_t size){
+void* my_realloc(void* ptr, size_t size){
 	Header* header;
 	void* srcData;
 	void* destData;
 
 	/* If the ptr is not already allocated, just malloc like normal */
 	if ((header = getClosest(ptr)) == NULL)
-		return malloc(size);
+		return my_malloc(size);
 
 	/* Otherwise memcpy the data to a new location */
 	srcData = (void*)header + div16(sizeof(Header));
-	destData = malloc(size);
+	destData = my_malloc(size);
 	memcpy(destData, srcData, header->size);
 
 	/* Free the old header and defrag any new memory */
-	free(header);
+	my_free(header);
 	return destData;
 }
 
