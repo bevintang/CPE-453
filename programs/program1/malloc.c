@@ -362,6 +362,11 @@ void* realloc(void* ptr, size_t size){
 	/* Choose appropriate size for copying */
 	if (size > header->size)
 		copySize = header->size;
+	else if (size == header->size){
+		free(header);
+		return ptr;
+	}
+
 
 	/* Free if size is 0 */
 	if (copySize == 0)
