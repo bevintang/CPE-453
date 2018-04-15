@@ -26,6 +26,17 @@ Header* linkedHeaders = NULL;
 	number is divisble by 16.
  *
 **/
+size_t div16(size_t size) {
+	size_t temp = size;
+	uint8_t remainder;
+
+	if ((remainder = temp % 16) != 0){
+		temp += 16 - remainder;
+	}
+
+	return temp;
+}
+
 void* div16Ptr(void* ptr) {
 	size_t addr = (size_t)ptr + sizeof(Header);
 	uint8_t remainder;
@@ -38,6 +49,51 @@ void* div16Ptr(void* ptr) {
 	ptr = (void*) addr;
 
 	return ptr;
+}
+
+/**
+ *
+ 	Given a size, create a new, non-free Header struct whose next param is NULL.
+
+ 	RETURN VALUE: Header struct pointer to the newly created Header.
+ *
+**/
+Header* newHeader(size_t size) {
+	Header* newHeader;
+	size_t totalSize = div16(size) + div16(sizeof(Header));
+
+	/* Ask for more memory using sbrk() */
+	if ((newHeader = sbrk(totalSize)) == NULL)
+		return NULL;
+
+	/* Construct this new header */
+	newHeader->size = div16(size);
+	newHeader->free = 0;
+	newHeader->next = NULL;
+
+	return newHeader;
+}
+
+/**
+ *
+ 	Given a Header in the linked list and a given size, insert a new header
+ 	with the specified size into the linked list.
+ *
+**/
+void insertHeader(Header* current, size_t size) {
+	/* Construct new header */
+	Header* newHeader = div16Ptr(div16Ptr(current) + current->size);
+	if (size < 16 || newHeader == current->next)
+		return;
+
+	printf("HEADER BEFORE IS AT %p\n", current);
+	printf("INSERTING NEW HEADER AT: %p\n\n", newHeader);
+	newHeader->size = size;
+	newHeader->free = 1;
+
+	/* Insert into Linked List */
+	newHeader->next = current->next;
+	current->next = newHeader;
 }
 
 /**
@@ -70,6 +126,9 @@ void* canFit(size_t size) {
 
 	/* Exit while loop if proper size is found: */
 	if (curHeadSize >= size && isFree) {
+		/* Make new header to fill gap*/
+		insertHeader(curHead, curHeadSize - size);
+		curHead->size = size;
 		return curHead;
 	}
 	/* Or size not found (i.e. next Header is NULL) */
@@ -162,32 +221,11 @@ void defrag(){
 			printf("Defragging...\n");
 			combineHeaders(current, current->next);
 		}
-
-		if (current->next != NULL)
-			current = current->next;
+		else{
+			if (current->next != NULL)
+				current = current->next;
+		}
 	}
-}
-
-/**
- *
- 	Given a size, create a new, non-free Header struct whose next param is NULL.
-
- 	RETURN VALUE: Header struct pointer to the newly created Header.
- *
-**/
-Header* newHeader(size_t size) {
-	Header* header;
-	size_t totalSize = size + sizeof(Header);
-
-	/* Ask for more memory using sbrk() */
-	header = sbrk(totalSize);
-
-	/* Construct this new header */
-	header->size = size;
-	header->free = 0;
-	header->next = NULL;
-
-	return header;
 }
 
 /**
@@ -228,16 +266,19 @@ void my_free(void* ptr) {
 **/
 void* my_malloc(size_t size) {
 	Header* header;
+	size_t realSize = div16(size);
 	
-	if ((header = canFit(size)) == NULL){
-		header = newHeader(size);
-		append(header);
+	if ((header = canFit(realSize)) == NULL){
+		if ((header = newHeader(realSize)) != NULL)
+			append(header);
+		else
+			return NULL;
 	}
 	else {
 		header->free = 0;
 	}
 	printf("NEW HEADER: %p\n", header);
-	printf("DATA STARTS AT: %p\n\n\n", div16Ptr(header));
+	printf("DATA STARTS AT: %p\n\n", div16Ptr(header));
 	return div16Ptr(header);
 }
 
@@ -245,8 +286,9 @@ void printLinkedList(){
 	Header* current = linkedHeaders;
 	size_t i = 0;
 	while (current != NULL){
-		printf("%lu:\tSize: %lu\n\tFree: %d\n\tHeader: %p\n-----------------\n",
+		printf("%lu:\tSize: %lu\n\tFree: %d\n\tLoc: %p\n\t",
 			i++, current->size, current->free, current);
+		printf("Next: %p\n-----------------------\n", current->next);
 		current = current->next;
 	}
 }
@@ -255,17 +297,40 @@ void printLinkedList(){
 	Crappy driver
 */
 int main(void) {
-	int* sample1 = my_malloc(16);
-	int* sample2 = my_malloc(16);
+	int* sample1 = (int*)my_malloc(16);
+	printLinkedList();
+	char* sample2 = (char*)my_malloc(160);
 	printLinkedList();
 
-	/* Remalloc sample1 */
+	/* Remalloc sample1 */	
 	my_free(sample1);
-	printf("First free good\n");
+	sample1 = my_malloc(16);
+
 	my_free(sample2);
-	printf("Second free good\n");
-	sample1 = my_malloc(32);
-	sample2 = my_malloc(16);
 	printLinkedList();
+
+	sample2 = my_malloc(4);
+	printLinkedList();
+
+	int* sample3 = my_malloc(64);
+	printLinkedList();
+
+	int* sample4 = my_malloc(160);
+	printLinkedList();
+
+	printf("\n\nFREEING SAMPLE2\n");
+	my_free(sample2);
+	printLinkedList();
+
+	printf("\n\nFREEING SAMPLE3\n");
+	my_free(sample3);
+	printLinkedList();
+	/*
+	my_free(sample2);
+	sample1 = my_malloc(32);
+	sample2 = my_malloc(4);
+	printLinkedList();
+	*/
+
 	return 0;
 }
