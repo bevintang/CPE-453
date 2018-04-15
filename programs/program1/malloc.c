@@ -1,24 +1,4 @@
-#include <unistd.h>
-#include <stdint.h>
-#include <stdio.h>
-
-/** 
- *
-	Struct of a Header (Linked List) 
- *
-**/
-typedef struct h{
-	size_t size;
-	uint8_t free;
-	struct h* next;
-} Header;
-
-/**
- *
-	Global Linked list of Headers 
- *
-**/
-Header* linkedHeaders = NULL;
+#include "malloc.h"
 
 /**
  *
@@ -86,8 +66,6 @@ void insertHeader(Header* current, size_t size) {
 	if (size < 16 || newHeader == current->next)
 		return;
 
-	printf("HEADER BEFORE IS AT %p\n", current);
-	printf("INSERTING NEW HEADER AT: %p\n\n", newHeader);
 	newHeader->size = size;
 	newHeader->free = 1;
 
@@ -174,9 +152,13 @@ void append(Header* newHeader) {
 	}
 }
 
-int overFlow(size_t num1, size_t num2){
-	size_t sum = num1 + num2;
-	if (sum < num1 || sum < num2)
+int overFlow(size_t num1, size_t num2, int op){
+	size_t result = num1 + num2;
+
+	if (op == MULTIPLY)
+		result = num1 * num2;
+
+	if (result < num1 || result < num2)
 		return 1;
 	return 0;
 }
@@ -212,18 +194,15 @@ void defrag(){
 	if (current == NULL)
 		return;
 
-	/* Real initial values */
-	curSize = current->size;
-	curFree = current->free;
-
-	/* Iterate through linked list and combine adjacent, free headers */
+	/* Iterate through linked list and defrag */
 	while (current->next != NULL){
 		curSize = current->size;
 		nextSize = current->next->size;
 		curFree = current->free;
 		nextFree = current->next->free;
-		if (curFree && nextFree && !overFlow(curSize, nextSize)){
-			printf("Defragging...\n");
+
+		/* if we find adjacent, free headers, combine them */
+		if (curFree && nextFree && !overFlow(curSize, nextSize, ADD)){
 			combineHeaders(current, current->next);
 		}
 		else{
@@ -235,9 +214,7 @@ void defrag(){
 	}
 
 	/* Remove a header if it is free and the last in the linked list */
-	printf("CAN I MAKE IT INSIDE?\n");
 	if(current->next == NULL && current->free){
-		printf("IM INSIDE\n");
 		previous->next = NULL;
 		sbrk(-(curSize));
 	}
@@ -245,26 +222,64 @@ void defrag(){
 
 /**
  *
+ 	Given a pointer, find the header the described address is a part of.
+
+ 	RETURN VALUE: Header* who points at the closest Header to ptr. If not found,
+ 				  return NULL.
+ *
+**/
+Header* getClosest(void* ptr){
+	void* toFree = (void*)ptr;
+	Header* current = linkedHeaders;
+	Header* next = linkedHeaders;
+	size_t endOfData = 0;
+
+	/* Jump out if out of lower bounds of linked list */
+	if (ptr < (void*)linkedHeaders){
+		return NULL;
+	}
+
+	/* Look throw linked list until we find the Header who's address is
+	   immediately before the requested one */
+	while (current->next != NULL && (void*)current->next < toFree){
+		current = current->next;
+		next = current->next;
+	}
+
+	/* Jump out if out of upper bounds of linked list */
+	endOfData = (size_t)current + current->size + div16(sizeof(Header));
+	if (ptr > (void*)endOfData){
+		return NULL;
+	}
+	return current;	
+}
+
+/**
+ *
  	Given a pointer, free the appropriate chunk of data that pointer is
- 	a part of. To do this, find the header whose address is immediately
- 	before the desired pointer, and free it.
+ 	a part of.
 
  	At the end of the call, defrag the memory.
  *
 **/
 void my_free(void* ptr) {
-	Header* toFree = (Header*)ptr;
 	Header* current = linkedHeaders;
-	Header* next = linkedHeaders;
+	size_t endOfData = 0;
 
-	if (current == NULL || next == NULL)
+	/* Do nothing if there aren't any headers yet */
+	if (current == NULL)
 		return;
 
-	while (next != NULL && current->next < toFree){
-		current = current->next;
-		next = current->next;
-	}
-	current->free = 1;
+	/* Quit out if there is no associated Header */
+	if ((current = getClosest(ptr)) == NULL)
+		return;
+	
+	/* Only free segment if the pointer is within the bounds of the header */
+	endOfData = (size_t)current + current->size + div16(sizeof(Header));
+	if (ptr < (void*)endOfData)
+		current->free = 1;
+
+	/* Defrag after freeing */
 	defrag();
 }
 
@@ -292,9 +307,60 @@ void* my_malloc(size_t size) {
 	else {
 		header->free = 0;
 	}
-	printf("NEW HEADER: %p\n", header);
-	printf("DATA STARTS AT: %p\n\n", div16Ptr(header));
+
 	return div16Ptr(header);
+}
+
+/**
+ *
+ 	Does the same as malloc, but sets all bytes in memory to 0 using memset
+
+ 	RETURN VALUE: A divisble-by-16 address that represents the location of the
+ 				  start of the data segment.
+ *
+**/
+void* my_calloc(size_t nmemb, size_t size){
+	size_t realSize = div16(nmemb * size);
+	void* memStart;
+	if (overFlow(nmemb, size, MULTIPLY)){
+		return NULL;
+	}
+
+	memStart = my_malloc(realSize);
+	memset(memStart, 0, realSize);
+
+	return memStart;
+}
+
+/**
+ *
+ 	Given a pointer and a specified size, will do one of two things:
+ 	(1) If the pointer points to a segment of data in the linked list, the data
+ 		will be moved to a new location in memory with the size of 'size'
+ 	(2) If the pointer does not point to any data, realloc will do the same as
+ 	    malloc with the specified size.
+
+ 	RETURN VALUE: A divisble-by-16 address that represents the location of the
+ 				  start of the data segment.
+ *
+**/
+void* my_realloc(void* ptr, size_t size){
+	Header* header;
+	void* srcData;
+	void* destData;
+
+	/* If the ptr is not already allocated, just malloc like normal */
+	if ((header = getClosest(ptr)) == NULL)
+		return my_malloc(size);
+
+	/* Otherwise memcpy the data to a new location */
+	srcData = (void*)header + div16(sizeof(Header));
+	destData = my_malloc(size);
+	memcpy(destData, srcData, header->size);
+
+	/* Free the old header and defrag any new memory */
+	my_free(header);
+	return destData;
 }
 
 void printLinkedList(){
@@ -306,60 +372,4 @@ void printLinkedList(){
 		printf("Next: %p\n-----------------------\n", current->next);
 		current = current->next;
 	}
-}
-
-/*
-	Crappy driver
-*/
-int main(void) {
-	int* sample1 = (int*)my_malloc(16);
-	printLinkedList();
-	char* sample2 = (char*)my_malloc(160);
-	printLinkedList();
-
-	/* Remalloc sample1 */	
-	printf("FREEING SAMPLE1!...\n");
-	my_free(sample1);
-	printLinkedList();
-
-	printf("MALLOCING SAMPLE1 16...\n");
-	sample1 = my_malloc(16);
-	printLinkedList();
-
-	printf("FREEING SAMPLE2!...\n");
-	my_free(sample2);
-	printLinkedList();
-
-	printf("MALLOCING SAMPLE2 4...\n");
-	sample2 = my_malloc(4);
-	printLinkedList();
-
-	printf("MALLOCING SAMPLE3 64...\n");
-	int* sample3 = my_malloc(64);
-	printLinkedList();
-
-	printf("MALLOCING SAMPLE4 160...\n");
-	int* sample4 = my_malloc(160);
-	printLinkedList();
-
-	printf("\n\nFREEING SAMPLE2 4\n");
-	my_free(sample2);
-	printLinkedList();
-
-	printf("\n\nFREEING SAMPLE3 64\n");
-	my_free(sample3);
-	printLinkedList();
-
-	printf("\n\nFREEING SAMPLE4 160\n");
-	my_free(sample4);
-	printLinkedList();	
-
-	/*
-	my_free(sample2);
-	sample1 = my_malloc(32);
-	sample2 = my_malloc(4);
-	printLinkedList();
-	*/
-
-	return 0;
 }
