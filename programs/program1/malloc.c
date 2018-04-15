@@ -358,9 +358,16 @@ void* realloc(void* ptr, size_t size){
 	/* Otherwise memcpy the data to a new location */
 	srcData = (void*)header + div16(sizeof(Header));
 	destData = malloc(size);
+
+	/* Choose appropriate size for copying */
 	if (size > header->size)
 		copySize = header->size;
-	memcpy(destData, srcData, copySize);
+
+	/* Free if size is 0 */
+	if (copySize == 0)
+		free(ptr);
+	else
+		memcpy(destData, srcData, copySize);
 
 	/* Free the old header and defrag any new memory */
 	free(header);
