@@ -202,6 +202,7 @@ void combineHeaders(Header* current, Header* next){
 **/
 void defrag(){
 	Header* current = linkedHeaders;
+	Header* previous = linkedHeaders;
 	size_t curSize = 0;
 	size_t nextSize = 0;
 	int curFree = 0;
@@ -210,6 +211,10 @@ void defrag(){
 	/* Return if linked list isn't long enough */
 	if (current == NULL)
 		return;
+
+	/* Real initial values */
+	curSize = current->size;
+	curFree = current->free;
 
 	/* Iterate through linked list and combine adjacent, free headers */
 	while (current->next != NULL){
@@ -222,9 +227,19 @@ void defrag(){
 			combineHeaders(current, current->next);
 		}
 		else{
-			if (current->next != NULL)
+			if (current->next != NULL){
+				previous = current;
 				current = current->next;
+			}
 		}
+	}
+
+	/* Remove a header if it is free and the last in the linked list */
+	printf("CAN I MAKE IT INSIDE?\n");
+	if(current->next == NULL && current->free){
+		printf("IM INSIDE\n");
+		previous->next = NULL;
+		sbrk(-(curSize));
 	}
 }
 
@@ -303,28 +318,42 @@ int main(void) {
 	printLinkedList();
 
 	/* Remalloc sample1 */	
+	printf("FREEING SAMPLE1!...\n");
 	my_free(sample1);
-	sample1 = my_malloc(16);
+	printLinkedList();
 
+	printf("MALLOCING SAMPLE1 16...\n");
+	sample1 = my_malloc(16);
+	printLinkedList();
+
+	printf("FREEING SAMPLE2!...\n");
 	my_free(sample2);
 	printLinkedList();
 
+	printf("MALLOCING SAMPLE2 4...\n");
 	sample2 = my_malloc(4);
 	printLinkedList();
 
+	printf("MALLOCING SAMPLE3 64...\n");
 	int* sample3 = my_malloc(64);
 	printLinkedList();
 
+	printf("MALLOCING SAMPLE4 160...\n");
 	int* sample4 = my_malloc(160);
 	printLinkedList();
 
-	printf("\n\nFREEING SAMPLE2\n");
+	printf("\n\nFREEING SAMPLE2 4\n");
 	my_free(sample2);
 	printLinkedList();
 
-	printf("\n\nFREEING SAMPLE3\n");
+	printf("\n\nFREEING SAMPLE3 64\n");
 	my_free(sample3);
 	printLinkedList();
+
+	printf("\n\nFREEING SAMPLE4 160\n");
+	my_free(sample4);
+	printLinkedList();	
+
 	/*
 	my_free(sample2);
 	sample1 = my_malloc(32);
