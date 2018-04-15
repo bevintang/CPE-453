@@ -349,6 +349,7 @@ void* realloc(void* ptr, size_t size){
 	Header* header;
 	void* srcData;
 	void* destData;
+	size_t copySize = size;
 
 	/* If the ptr is not already allocated, just malloc like normal */
 	if (ptr == NULL || (header = getClosest(ptr)) == NULL)
@@ -357,7 +358,9 @@ void* realloc(void* ptr, size_t size){
 	/* Otherwise memcpy the data to a new location */
 	srcData = (void*)header + div16(sizeof(Header));
 	destData = malloc(size);
-	memcpy(destData, srcData, header->size);
+	if (size > header->size)
+		copySize = header->size;
+	memcpy(destData, srcData, copySize);
 
 	/* Free the old header and defrag any new memory */
 	free(header);
