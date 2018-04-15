@@ -351,7 +351,7 @@ void* realloc(void* ptr, size_t size){
 	void* destData;
 
 	/* If the ptr is not already allocated, just malloc like normal */
-	if ((header = getClosest(ptr)) == NULL)
+	if (ptr == NULL || (header = getClosest(ptr)) == NULL)
 		return malloc(size);
 
 	/* Otherwise memcpy the data to a new location */
