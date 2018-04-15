@@ -105,7 +105,7 @@ void* canFit(size_t size) {
 
 	/* Exit while loop if proper size is found: */
 	if (curHeadSize >= size && isFree) {
-		/* Make new header to fill gap*/
+		/* Make new header to fill gap */
 		insertHeader(curHead, curHeadSize - size);
 		curHead->size = size;
 		return curHead;
@@ -266,7 +266,7 @@ void free(void* ptr) {
 	size_t endOfData = 0;
 
 	/* Do nothing if there aren't any headers yet */
-	if (current == NULL)
+	if (ptr == NULL || current == NULL)
 		return;
 
 	/* Quit out if there is no associated Header */
@@ -278,6 +278,9 @@ void free(void* ptr) {
 	if (ptr < (void*)endOfData)
 		current->free = 1;
 
+	if (strtoul(getenv("DEBUG_MALLOC"))){
+		fprintf(stderr, "free(%p\n)", div16Ptr(current));
+	}
 	/* Defrag after freeing */
 	defrag();
 }
@@ -294,6 +297,38 @@ void free(void* ptr) {
  *
 **/
 void* malloc(size_t size) {
+	Header* header;
+	size_t realSize = div16(size);
+	
+	if ((header = canFit(realSize)) == NULL){
+		if ((header = newHeader(realSize)) != NULL)
+			append(header);
+		else
+			return NULL;
+	}
+	else {
+		header->free = 0;
+	}
+
+	/* Consider DEBUG_MALLOC */
+	if (strtoul(getenv("DEBUG_MALLOC"))){
+		fprintf(stderr, "malloc(%lu)     => (ptr=%p, size=%lu)\n", 
+			size, div16Ptr(header), realSize);
+	}
+
+	return div16Ptr(header);
+}
+
+/**
+ *
+ 	A malloc to be used within calloc and realloc. This version does not
+ 	print malloc's DEBUG_MALLOC message to stderr.
+
+ 	RETURN VALUE: A divisble-by-16 address that represents the location
+ 				  of the start of the data segment.
+ *
+**/
+void* pseudoMalloc(size_t size) {
 	Header* header;
 	size_t realSize = div16(size);
 	
@@ -326,8 +361,14 @@ void* calloc(size_t nmemb, size_t size){
 		return NULL;
 	}
 
-	memStart = malloc(realSize);
+	memStart = pseudoMalloc(realSize);
 	memset(memStart, 0, realSize);
+
+	/* Consider DEBUG_MALLOC */
+	if (strtoul(getenv("DEBUG_MALLOC"))){
+		fprintf(stderr, "calloc(%lu, %lu)  => (ptr=%p, size=%lu)\n", 
+			nmemb, size, memStart, realSize);
+	}
 
 	return memStart;
 }
@@ -357,25 +398,37 @@ void* realloc(void* ptr, size_t size){
 
 	/* Otherwise memcpy the data to a new location */
 	srcData = (void*)header + div16(sizeof(Header));
-	destData = malloc(size);
+
+	/* If requested size is smaller than the original size,
+	   just shrink the data at the current pointer. 
+	   Insert a new Header with the remaining data */
+	if (size <= header->size){
+		destData = srcData;
+		insertHeader(header, header->size - size);
+		header->size = size;
+	}
+	else
+		destData = pseudoMalloc(size);
 
 	/* Choose appropriate size for copying */
 	if (size > header->size)
 		copySize = header->size;
-	else if (size == header->size){
-		free(header);
-		return ptr;
-	}
-
 
 	/* Free if size is 0 */
 	if (copySize == 0)
-		free(ptr);
-	else
-		memcpy(destData, srcData, copySize);
+		copySize = 16;
+
+	memcpy(destData, srcData, copySize);
 
 	/* Free the old header and defrag any new memory */
 	free(header);
+
+	/* Consider DEBUG_MALLOC */
+	if (strtoul(getenv("DEBUG_MALLOC"))){
+		fprintf(stderr, "realloc(%p, %lu) => (ptr=%p, size=%lu)\n", 
+			ptr, size, destData, copySize);
+	}
+
 	return destData;
 }
 
