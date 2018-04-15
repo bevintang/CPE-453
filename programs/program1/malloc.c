@@ -21,8 +21,8 @@ void* div16Ptr(void* ptr) {
 	size_t addr = (size_t)ptr + sizeof(Header);
 	uint8_t remainder;
 
-	/* Avoid collision of header and data addresses if ptr is divisble by 16 */
-
+	/* Avoid collision of header and data addresses if ptr is divisble by
+	   16 */
 	if ((remainder = addr % 16) != 0)
 		addr += 16 - remainder;
 
@@ -33,7 +33,8 @@ void* div16Ptr(void* ptr) {
 
 /**
  *
- 	Given a size, create a new, non-free Header struct whose next param is NULL.
+ 	Given a size, create a new, non-free Header struct whose next param is
+ 	NULL.
 
  	RETURN VALUE: Header struct pointer to the newly created Header.
  *
@@ -76,8 +77,8 @@ void insertHeader(Header* current, size_t size) {
 
 /**
  *
-	If the size can fit in an existing header, return that header's location. 
-	If not, return NULL.
+	If the size can fit in an existing header, return that header's 
+	location. If not, return NULL.
  *
 **/
 void* canFit(size_t size) {
@@ -120,8 +121,8 @@ void* canFit(size_t size) {
  	Retrieve that last node of the global linked list and return that
  	node's address. 
 
- 	RETURN VALUE: Return a pointer to the address of the last Header. If linked
- 				  list is empty, return NULL.
+ 	RETURN VALUE: Return a pointer to the address of the last Header. 
+ 				  If linked list is empty, return NULL.
  *
 **/
 void* lastNode() {
@@ -176,10 +177,8 @@ void combineHeaders(Header* current, Header* next){
 
 /**
  *
- 	Search through the linked list of Headers to combine any two adjacent, free
- 	chunks. 
-
- 	Performance: O(n).
+ 	Search through the linked list of Headers to combine any two adjacent,
+ 	free chunks. 
  *
 **/
 void defrag(){
@@ -224,8 +223,8 @@ void defrag(){
  *
  	Given a pointer, find the header the described address is a part of.
 
- 	RETURN VALUE: Header* who points at the closest Header to ptr. If not found,
- 				  return NULL.
+ 	RETURN VALUE: Header* who points at the closest Header to ptr. 
+ 				  If not found, return NULL.
  *
 **/
 Header* getClosest(void* ptr){
@@ -274,7 +273,7 @@ void free(void* ptr) {
 	if ((current = getClosest(ptr)) == NULL)
 		return;
 	
-	/* Only free segment if the pointer is within the bounds of the header */
+	/* Only free segment if the ptr is within the bounds of the header */
 	endOfData = (size_t)current + current->size + div16(sizeof(Header));
 	if (ptr < (void*)endOfData)
 		current->free = 1;
@@ -286,12 +285,12 @@ void free(void* ptr) {
 /**
  *
  	Check the linked list of headers to see if there is an available
- 	size. If not, create a new header and set aside new memory with sbrk, and
- 	append this new header to the linked list. Otherwise, set the appropriate
- 	header's free flag to 0.
+ 	size. If not, create a new header and set aside new memory with
+ 	sbrk, and append this new header to the linked list. Otherwise, 
+ 	set the appropriate header's free flag to 0.
 
- 	RETURN VALUE: A divisble-by-16 address that represents the location of the
- 				  start of the data segment.
+ 	RETURN VALUE: A divisble-by-16 address that represents the location
+ 				  of the start of the data segment.
  *
 **/
 void* malloc(size_t size) {
@@ -313,10 +312,11 @@ void* malloc(size_t size) {
 
 /**
  *
- 	Does the same as malloc, but sets all bytes in memory to 0 using memset
+ 	Does the same as malloc, but sets all bytes in memory to 0 using 
+ 	memset
 
- 	RETURN VALUE: A divisble-by-16 address that represents the location of the
- 				  start of the data segment.
+ 	RETURN VALUE: A divisble-by-16 address that represents the location 
+ 				  of the start of the data segment.
  *
 **/
 void* calloc(size_t nmemb, size_t size){
@@ -335,13 +335,14 @@ void* calloc(size_t nmemb, size_t size){
 /**
  *
  	Given a pointer and a specified size, will do one of two things:
- 	(1) If the pointer points to a segment of data in the linked list, the data
- 		will be moved to a new location in memory with the size of 'size'
- 	(2) If the pointer does not point to any data, realloc will do the same as
- 	    malloc with the specified size.
+ 	(1) If the pointer points to a segment of data in the linked list,
+ 	    the data will be moved to a new location in memory with the size
+ 	    of 'size'
+ 	(2) If the pointer does not point to any data, realloc will do the 
+ 	    same as malloc with the specified size.
 
- 	RETURN VALUE: A divisble-by-16 address that represents the location of the
- 				  start of the data segment.
+ 	RETURN VALUE: A divisble-by-16 address that represents the location
+ 				  of the start of the data segment.
  *
 **/
 void* realloc(void* ptr, size_t size){
