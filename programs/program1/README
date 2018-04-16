@@ -1,0 +1,5 @@
+Bevin Tang
+
+No special instructions
+
+I could not figure out how to stop realloc from freeing a pointer when I wanted to downsize my set-aside memory. When shrinking, realloc should insert a new header with the remaining space left (if that space is enough to hold a new header and a size of at least 16 bytes). Once this is triggered, realloc SHOULD NOT free the original pointer, since that pointer now holds the information we want -- but it does.
