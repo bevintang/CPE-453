@@ -66,10 +66,10 @@ Header* newHeader(size_t size) {
 int insertHeader(Header* current, size_t size) {
 	/* Construct new header */
 	Header* newHeader = (Header*)((size_t)current + current->size);
-	snprint(char chars[100], 100, "Current: %p\n", current);
-	snprint(char chars[100], 100, "newHeader: %p\n", newHeader);
-	snprint(char chars[100], 100, "newStartOfData: %lu\n", (size_t)newHeader + div16(sizeof(Header)) + size);
-	snprint(char chars[100], 100, "nextHeader: %p\n", current->next);
+	snprintf(char chars[100], 100, "Current: %p\n", current);
+	snprintf(char chars[100], 100, "newHeader: %p\n", newHeader);
+	snprintf(char chars[100], 100, "newStartOfData: %lu\n", (size_t)newHeader + div16(sizeof(Header)) + size);
+	snprintf(char chars[100], 100, "nextHeader: %p\n", current->next);
 
 	if ((size_t)newHeader + div16(sizeof(Header)) + size >= 
 			(size_t)current->next){
