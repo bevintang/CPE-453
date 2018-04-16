@@ -75,7 +75,7 @@ int insertHeader(Header* current, size_t size) {
 	fprintf(stderr, "newEndOfData: %p\n", newEndOfData);
 	fprintf(stderr, "nextHeader: %p\n", current->next);
 
-	if (newEndOfData >= (void*) current->next){
+	if (current->next != NULL && newEndOfData >= (void*) current->next){
 		fprintf(stderr, "\tNOT ENOUGH SPACE. NOT INSERTING\n");
 		return 0;
 	}
