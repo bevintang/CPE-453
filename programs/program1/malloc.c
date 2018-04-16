@@ -264,6 +264,7 @@ Header* getClosest(void* ptr){
 void free(void* ptr) {
 	Header* current = linkedHeaders;
 	size_t endOfData = 0;
+	char* endptr;
 
 	/* Do nothing if there aren't any headers yet */
 	if (ptr == NULL || current == NULL)
@@ -278,7 +279,7 @@ void free(void* ptr) {
 	if (ptr < (void*)endOfData)
 		current->free = 1;
 
-	if (strtoul(getenv("DEBUG_MALLOC"))){
+	if (strtoul(getenv("DEBUG_MALLOC"), &endptr, 10)){
 		fprintf(stderr, "free(%p\n)", div16Ptr(current));
 	}
 	/* Defrag after freeing */
@@ -299,6 +300,7 @@ void free(void* ptr) {
 void* malloc(size_t size) {
 	Header* header;
 	size_t realSize = div16(size);
+	char* endptr;
 	
 	if ((header = canFit(realSize)) == NULL){
 		if ((header = newHeader(realSize)) != NULL)
@@ -311,7 +313,7 @@ void* malloc(size_t size) {
 	}
 
 	/* Consider DEBUG_MALLOC */
-	if (strtoul(getenv("DEBUG_MALLOC"))){
+	if (strtoul(getenv("DEBUG_MALLOC"), &endptr, 10)){
 		fprintf(stderr, "malloc(%lu)     => (ptr=%p, size=%lu)\n", 
 			size, div16Ptr(header), realSize);
 	}
@@ -357,6 +359,8 @@ void* pseudoMalloc(size_t size) {
 void* calloc(size_t nmemb, size_t size){
 	size_t realSize = div16(nmemb * size);
 	void* memStart;
+	char* endptr;
+
 	if (overFlow(nmemb, size, MULTIPLY)){
 		return NULL;
 	}
@@ -365,7 +369,7 @@ void* calloc(size_t nmemb, size_t size){
 	memset(memStart, 0, realSize);
 
 	/* Consider DEBUG_MALLOC */
-	if (strtoul(getenv("DEBUG_MALLOC"))){
+	if (strtoul(getenv("DEBUG_MALLOC"), &endptr, 10)){
 		fprintf(stderr, "calloc(%lu, %lu)  => (ptr=%p, size=%lu)\n", 
 			nmemb, size, memStart, realSize);
 	}
@@ -391,6 +395,7 @@ void* realloc(void* ptr, size_t size){
 	void* srcData;
 	void* destData;
 	size_t copySize = size;
+	char* endptr;
 
 	/* If the ptr is not already allocated, just malloc like normal */
 	if (ptr == NULL || (header = getClosest(ptr)) == NULL)
@@ -424,7 +429,7 @@ void* realloc(void* ptr, size_t size){
 	free(header);
 
 	/* Consider DEBUG_MALLOC */
-	if (strtoul(getenv("DEBUG_MALLOC"))){
+	if (strtoul(getenv("DEBUG_MALLOC"), &endptr, 10)){
 		fprintf(stderr, "realloc(%p, %lu) => (ptr=%p, size=%lu)\n", 
 			ptr, size, destData, copySize);
 	}
