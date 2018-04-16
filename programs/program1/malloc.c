@@ -65,7 +65,7 @@ Header* newHeader(size_t size) {
 **/
 int insertHeader(Header* current, size_t size) {
 	/* Construct new header */
-	char buffer[100]
+	char buffer[100];
 	Header* newHeader = (Header*)((size_t)current + current->size);
 	snprintf(buffer, 100, "Current: %p\n", current);
 	snprintf(buffer, 100, "newHeader: %p\n", newHeader);
