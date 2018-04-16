@@ -64,6 +64,8 @@ Header* newHeader(size_t size) {
  *
 **/
 int insertHeader(Header* current, size_t size) {
+	if (size > (size_t)current->next)
+		return 0;
 	/* Construct new header */
 	Header* newHeader = (Header*)((size_t)current + current->size);
 	void* newEndOfData = (void*)((size_t)newHeader + div16(sizeof(Header)) + size);
