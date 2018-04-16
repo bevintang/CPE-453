@@ -5,8 +5,11 @@
 	Crappy driver
 */
 int main(void) {
+	printf("MALLOCING SAMPLE1 16...\n");
 	int* sample1 = (int*)realloc(NULL, 16);
 	printLinkedList();
+
+	printf("MALLOCING SAMPLE2 160...\n");
 	char* sample2 = (char*)realloc(NULL, 160);
 	printLinkedList();
 
