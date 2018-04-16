@@ -359,6 +359,12 @@ void* realloc(void* ptr, size_t size){
 	void* destData;
 	size_t copySize = size;
 
+	/* Free if size is 0 */
+	if (size == 0){
+		free(ptr);
+		return ptr;
+	}
+
 	/* If the ptr is not already allocated, just malloc like normal */
 	if (ptr == NULL || (header = getClosest(ptr)) == NULL)
 		return malloc(size);
@@ -380,13 +386,6 @@ void* realloc(void* ptr, size_t size){
 	/* Choose appropriate size for copying */
 	if (size > header->size)
 		copySize = header->size;
-
-	/* Free if size is 0 */
-	if (copySize == 0){
-		free(ptr);
-		free(header);
-		return ptr;
-	}
 
 	memcpy(destData, srcData, copySize);
 
