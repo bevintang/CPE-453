@@ -68,15 +68,10 @@ int insertHeader(Header* current, size_t size) {
 		return 0;
 	/* Construct new header */
 	Header* newHeader = (Header*)((size_t)current + current->size);
-	void* newEndOfData = (void*)((size_t)newHeader + div16(sizeof(Header)) + size);
-	fprintf(stderr, "SIZE REQ: %lu\n", size);
-	fprintf(stderr, "Current: %p\n", current);
-	fprintf(stderr, "newHeader: %p\n", newHeader);
-	fprintf(stderr, "newEndOfData: %p\n", newEndOfData);
-	fprintf(stderr, "nextHeader: %p\n", current->next);
+	void* newEndOfData = (void*)((size_t)newHeader + 
+		div16(sizeof(Header)) + size);
 
 	if (current->next != NULL && newEndOfData >= (void*) current->next){
-		fprintf(stderr, "\tNOT ENOUGH SPACE. NOT INSERTING\n");
 		return 0;
 	}
 
@@ -393,9 +388,7 @@ void* realloc(void* ptr, size_t size){
 	/* If requested size is smaller than the original size,
 	   just shrink the data at the current pointer. 
 	   Insert a new Header with the remaining data */
-	fprintf(stderr, "SizeReq: %lu, Size: %lu", size, header->size);
 	if (size <= header->size){
-		fprintf(stderr, "size is less than header's size\n");
 		destData = srcData;
 		if (insertHeader(header, header->size - size
 			 - div16(sizeof(Header)))){
