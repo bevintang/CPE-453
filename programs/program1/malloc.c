@@ -120,8 +120,10 @@ void* canFit(size_t size) {
 	/* Exit while loop if proper size is found: */
 	if (curHeadSize >= size && isFree) {
 		/* Make new header to fill gap */
-		if (insertHeader(curHead, curHeadSize - size))
+		if (insertHeader(curHead, curHeadSize - size - 
+				div16(sizeof(Header)))){
 			curHead->size = size;
+		}
 		return curHead;
 	}
 	/* Or size not found (i.e. next Header is NULL) */
@@ -391,8 +393,10 @@ void* realloc(void* ptr, size_t size){
 	   Insert a new Header with the remaining data */
 	if (size <= header->size){
 		destData = srcData;
-		if (insertHeader(header, header->size - size))
+		if (insertHeader(header, header->size - size
+			 - div16(sizeof(Header)))){
 			header->size = size;
+		}
 	}
 	else{
 		destData = malloc(size);
