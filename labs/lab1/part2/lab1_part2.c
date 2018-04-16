@@ -12,7 +12,7 @@ void toggle_count(int* isCounting) {
 
 void print_count(uint32_t* count, int isCounting){
 	if (isCounting){
-		(*count)++;
+		(*count)+= 20000;
 	}
 	clear_screen();
 	set_cursor(1, 1);

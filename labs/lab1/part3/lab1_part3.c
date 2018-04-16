@@ -35,6 +35,7 @@ void change_delay(char input, int* delay) {
 void delay_ms(int delay){
 	int i = 0;
 	print_int32(delay);
+	print_string("\n");
 	for (i = 0; i < delay; i++)
 		_delay_ms(1);
 }
