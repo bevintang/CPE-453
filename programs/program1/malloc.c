@@ -67,6 +67,7 @@ int insertHeader(Header* current, size_t size) {
 	/* Construct new header */
 	Header* newHeader = (Header*)((size_t)current + current->size);
 	void* newEndOfData = (void*)((size_t)newHeader + div16(sizeof(Header)) + size);
+	fprintf(stderr, "SIZE REQ: %lu\n", size);
 	fprintf(stderr, "Current: %p\n", current);
 	fprintf(stderr, "newHeader: %p\n", newHeader);
 	fprintf(stderr, "newEndOfData: %p\n", newEndOfData);
