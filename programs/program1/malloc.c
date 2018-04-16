@@ -365,6 +365,7 @@ void* realloc(void* ptr, size_t size){
 	void* srcData;
 	void* destData;
 	size_t copySize = size;
+	int inserted = 0;
 
 	/* Free if size is 0 */
 	if (size == 0){
@@ -384,7 +385,7 @@ void* realloc(void* ptr, size_t size){
 	   Insert a new Header with the remaining data */
 	if (size <= header->size){
 		destData = srcData;
-		if (insertHeader(header, header->size - size))
+		if ((inserted = insertHeader(header, header->size - size)))
 			header->size = size;
 	}
 	else{
@@ -397,8 +398,10 @@ void* realloc(void* ptr, size_t size){
 
 	memcpy(destData, srcData, copySize);
 
-	/* Free the old header and defrag any new memory */
-	free(ptr);
+	/* Free the old header and defrag any new memory if a new
+	   pointer was used */
+	if (!inserted)
+		free(ptr);
 
 	return destData;
 }
