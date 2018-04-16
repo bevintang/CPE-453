@@ -65,10 +65,10 @@ Header* newHeader(size_t size) {
 **/
 int insertHeader(Header* current, size_t size) {
 	/* Construct new header */
-	Header* newHeader = (Header*)((size_t)current + current->size);
+	void* newHeader = (void*)((size_t)current + current->size);
 	fprintf(stderr, "Current: %p\n", current);
 	fprintf(stderr, "newHeader: %p\n", newHeader);
-	fprintf(stderr, "newStartOfData: %lu\n", (size_t)newHeader + div16(sizeof(Header)) + size);
+	fprintf(stderr, "newStartOfData: %p\n", (void*)((size_t)newHeader + div16(sizeof(Header)) + size));
 	fprintf(stderr, "nextHeader: %p\n", current->next);
 
 	if ((size_t)newHeader + div16(sizeof(Header)) + size >= 
