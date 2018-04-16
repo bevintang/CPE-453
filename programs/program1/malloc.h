@@ -49,11 +49,13 @@ Header* newHeader(size_t size);
 
 /**
  *
- 	Given a Header in the linked list and a given size, insert a new
- 	header with the specified size into the linked list.
+ 	Given a Header in the linked list and a given size, insert a new header
+ 	with the specified size into the linked list.
+
+ 	RETURN VALUE: If a new header can fit, return 1. Else, 0.
  *
 **/
-void insertHeader(Header* current, size_t size);
+int insertHeader(Header* current, size_t size)
 
 /**
  *

@@ -59,13 +59,16 @@ Header* newHeader(size_t size) {
  *
  	Given a Header in the linked list and a given size, insert a new header
  	with the specified size into the linked list.
+
+ 	RETURN VALUE: If a new header can fit, return 1. Else, 0.
  *
 **/
-void insertHeader(Header* current, size_t size) {
+int insertHeader(Header* current, size_t size) {
 	/* Construct new header */
 	Header* newHeader = div16Ptr(div16Ptr(current) + current->size);
-	if (size < 16 || newHeader == current->next)
-		return;
+	if ((size_t)newHeader + size >= (size_t)current->next){
+		return 0;
+	}
 
 	newHeader->size = size;
 	newHeader->free = 1;
@@ -73,6 +76,8 @@ void insertHeader(Header* current, size_t size) {
 	/* Insert into Linked List */
 	newHeader->next = current->next;
 	current->next = newHeader;
+
+	return 1;
 }
 
 /**
@@ -92,6 +97,7 @@ void* canFit(size_t size) {
 		return NULL;
 	}
 
+	/* Initial assignment of variables */
 	curHead = linkedHeaders;
 	curHeadSize = curHead->size;
 	isFree = curHead->free;
@@ -106,8 +112,8 @@ void* canFit(size_t size) {
 	/* Exit while loop if proper size is found: */
 	if (curHeadSize >= size && isFree) {
 		/* Make new header to fill gap */
-		insertHeader(curHead, curHeadSize - size);
-		curHead->size = size;
+		if (insertHeader(curHead, curHeadSize - size))
+			curHead->size = size;
 		return curHead;
 	}
 	/* Or size not found (i.e. next Header is NULL) */
