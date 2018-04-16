@@ -2,4 +2,8 @@ Bevin Tang
 
 No special instructions
 
-I could not figure out how to stop realloc from freeing a pointer when I wanted to downsize my set-aside memory. When shrinking, realloc should insert a new header with the remaining space left (if that space is enough to hold a new header and a size of at least 16 bytes). Once this is triggered, realloc SHOULD NOT free the original pointer, since that pointer now holds the information we want -- but it does.
+Could not memory leak issues. I suspect it has to do with the way I insert a new header where
+there could possibly be space in my free and realloc(ptr, 0) calls.
+
+Could not fix realloc constantly moving the addresses around for the last few cases. Whatever this
+problem is, it could be the source of the memory leaks and seg faults.
