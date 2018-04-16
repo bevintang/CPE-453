@@ -382,8 +382,11 @@ void* realloc(void* ptr, size_t size){
 		copySize = header->size;
 
 	/* Free if size is 0 */
-	if (copySize == 0)
-		copySize = 16;
+	if (copySize == 0){
+		free(ptr);
+		free(header);
+		return ptr;
+	}
 
 	memcpy(destData, srcData, copySize);
 
