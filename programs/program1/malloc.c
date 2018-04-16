@@ -264,7 +264,6 @@ Header* getClosest(void* ptr){
 void free(void* ptr) {
 	Header* current = linkedHeaders;
 	size_t endOfData = 0;
-	char* endptr;
 
 	/* Do nothing if there aren't any headers yet */
 	if (ptr == NULL || current == NULL)
@@ -279,9 +278,6 @@ void free(void* ptr) {
 	if (ptr < (void*)endOfData)
 		current->free = 1;
 
-	if (strtoul(getenv("DEBUG_MALLOC"), &endptr, 10)){
-		fprintf(stderr, "free(%p\n)", div16Ptr(current));
-	}
 	/* Defrag after freeing */
 	defrag();
 }
@@ -300,7 +296,6 @@ void free(void* ptr) {
 void* malloc(size_t size) {
 	Header* header;
 	size_t realSize = div16(size);
-	char* endptr;
 	
 	if ((header = canFit(realSize)) == NULL){
 		if ((header = newHeader(realSize)) != NULL)
@@ -312,37 +307,12 @@ void* malloc(size_t size) {
 		header->free = 0;
 	}
 
-	/* Consider DEBUG_MALLOC */
+	/* Consider DEBUG_MALLOC 
 	if (strtoul(getenv("DEBUG_MALLOC"), &endptr, 10)){
 		fprintf(stderr, "malloc(%lu)     => (ptr=%p, size=%lu)\n", 
 			size, div16Ptr(header), realSize);
 	}
-
-	return div16Ptr(header);
-}
-
-/**
- *
- 	A malloc to be used within calloc and realloc. This version does not
- 	print malloc's DEBUG_MALLOC message to stderr.
-
- 	RETURN VALUE: A divisble-by-16 address that represents the location
- 				  of the start of the data segment.
- *
-**/
-void* pseudoMalloc(size_t size) {
-	Header* header;
-	size_t realSize = div16(size);
-	
-	if ((header = canFit(realSize)) == NULL){
-		if ((header = newHeader(realSize)) != NULL)
-			append(header);
-		else
-			return NULL;
-	}
-	else {
-		header->free = 0;
-	}
+	*/
 
 	return div16Ptr(header);
 }
@@ -359,20 +329,13 @@ void* pseudoMalloc(size_t size) {
 void* calloc(size_t nmemb, size_t size){
 	size_t realSize = div16(nmemb * size);
 	void* memStart;
-	char* endptr;
 
 	if (overFlow(nmemb, size, MULTIPLY)){
 		return NULL;
 	}
 
-	memStart = pseudoMalloc(realSize);
+	memStart = malloc(realSize);
 	memset(memStart, 0, realSize);
-
-	/* Consider DEBUG_MALLOC */
-	if (strtoul(getenv("DEBUG_MALLOC"), &endptr, 10)){
-		fprintf(stderr, "calloc(%lu, %lu)  => (ptr=%p, size=%lu)\n", 
-			nmemb, size, memStart, realSize);
-	}
 
 	return memStart;
 }
@@ -395,7 +358,6 @@ void* realloc(void* ptr, size_t size){
 	void* srcData;
 	void* destData;
 	size_t copySize = size;
-	char* endptr;
 
 	/* If the ptr is not already allocated, just malloc like normal */
 	if (ptr == NULL || (header = getClosest(ptr)) == NULL)
@@ -413,7 +375,7 @@ void* realloc(void* ptr, size_t size){
 		header->size = size;
 	}
 	else
-		destData = pseudoMalloc(size);
+		destData = malloc(size);
 
 	/* Choose appropriate size for copying */
 	if (size > header->size)
@@ -427,12 +389,6 @@ void* realloc(void* ptr, size_t size){
 
 	/* Free the old header and defrag any new memory */
 	free(header);
-
-	/* Consider DEBUG_MALLOC */
-	if (strtoul(getenv("DEBUG_MALLOC"), &endptr, 10)){
-		fprintf(stderr, "realloc(%p, %lu) => (ptr=%p, size=%lu)\n", 
-			ptr, size, destData, copySize);
-	}
 
 	return destData;
 }

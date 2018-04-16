@@ -142,17 +142,6 @@ void* malloc(size_t size);
 
 /**
  *
- 	A malloc to be used within calloc and realloc. This version does not
- 	print malloc's DEBUG_MALLOC message to stderr.
-
- 	RETURN VALUE: A divisble-by-16 address that represents the location
- 				  of the start of the data segment.
- *
-**/
-void* pseudoMalloc(size_t size);
-
-/**
- *
  	Does the same as malloc, but sets all bytes in memory to 0 using
  	memset
 
