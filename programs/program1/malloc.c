@@ -65,8 +65,8 @@ Header* newHeader(size_t size) {
 **/
 int insertHeader(Header* current, size_t size) {
 	/* Construct new header */
-	Header* newHeader = div16Ptr(div16Ptr(current) + current->size);
-	if ((size_t)newHeader +div16(sizeof(Header)) + size >= 
+	Header* newHeader = (Header*)((size_t)current + current->size);
+	if ((size_t)newHeader + div16(sizeof(Header)) + size >= 
 			(size_t)current->next){
 		return 0;
 	}
