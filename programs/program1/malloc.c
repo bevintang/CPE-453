@@ -66,7 +66,8 @@ Header* newHeader(size_t size) {
 int insertHeader(Header* current, size_t size) {
 	/* Construct new header */
 	Header* newHeader = div16Ptr(div16Ptr(current) + current->size);
-	if ((size_t)newHeader + size >= (size_t)current->next){
+	if ((size_t)newHeader +div16(sizeof(Header)) + size >= 
+			(size_t)current->next){
 		return 0;
 	}
 
@@ -386,8 +387,9 @@ void* realloc(void* ptr, size_t size){
 		if (insertHeader(header, header->size - size))
 			header->size = size;
 	}
-	else
+	else{
 		destData = malloc(size);
+	}
 
 	/* Choose appropriate size for copying */
 	if (size > header->size)
