@@ -390,7 +390,7 @@ void* realloc(void* ptr, size_t size){
 	memcpy(destData, srcData, copySize);
 
 	/* Free the old header and defrag any new memory */
-	free(header);
+	free(ptr);
 
 	return destData;
 }
