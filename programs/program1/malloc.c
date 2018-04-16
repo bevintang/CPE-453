@@ -68,15 +68,16 @@ int insertHeader(Header* current, size_t size) {
 	void* newHeader = (void*)((size_t)current + current->size);
 	fprintf(stderr, "Current: %p\n", current);
 	fprintf(stderr, "newHeader: %p\n", newHeader);
-	fprintf(stderr, "newStartOfData: %p\n", (void*)((size_t)newHeader + div16(sizeof(Header)) + size));
+	fprintf(stderr, "newStartOfData: %p\n", newHeader + div16(sizeof(Header)) + size);
 	fprintf(stderr, "nextHeader: %p\n", current->next);
 
-	if ((size_t)newHeader + div16(sizeof(Header)) + size >= 
-			(size_t)current->next){
+	if (newHeader + div16(sizeof(Header)) + size >= 
+			current->next){
 		fprintf(stderr, "\tNOT ENOUGH SPACE. NOT INSERTING\n");
 		return 0;
 	}
 
+	newHeader = (Header*)newHeader;
 	newHeader->size = size;
 	newHeader->free = 1;
 
