@@ -383,8 +383,8 @@ void* realloc(void* ptr, size_t size){
 	   Insert a new Header with the remaining data */
 	if (size <= header->size){
 		destData = srcData;
-		insertHeader(header, header->size - size);
-		header->size = size;
+		if (insertHeader(header, header->size - size))
+			header->size = size;
 	}
 	else
 		destData = malloc(size);
