@@ -393,7 +393,9 @@ void* realloc(void* ptr, size_t size){
 	/* If requested size is smaller than the original size,
 	   just shrink the data at the current pointer. 
 	   Insert a new Header with the remaining data */
+	fprintf(stderr, "SizeReq: %lu, Size: %lu", size, header->size);
 	if (size <= header->size){
+		fprintf(stderr, "size is less than header's size\n");
 		destData = srcData;
 		if (insertHeader(header, header->size - size
 			 - div16(sizeof(Header)))){
