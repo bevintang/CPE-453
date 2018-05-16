@@ -163,3 +163,11 @@ struct ext2_dir_entry {
 #define EXT2_S_IFDIR 0x4000   /* directory */
 #define EXT2_S_IFCHR 0x2000   /* character device */
 #define EXT2_S_IFIFO 0x1000   /* fifo */
+
+
+/*
+ * Program4 functions
+ */
+void open_file_system(int* fd, char* boot_block);
+void read_super_block (int* fd, struct ext2_super_block* sp);
+

@@ -1,6 +1,11 @@
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <fcntl.h>
+#include <unistd.h>
+#include "ext2.h"
 
 //the block argument is in terms of SD card 512 byte sectors
 void read_data(uint32_t block, uint16_t offset, uint8_t* data, uint16_t size, FILE* fp) {
@@ -13,3 +18,11 @@ void read_data(uint32_t block, uint16_t offset, uint8_t* data, uint16_t size, FI
    fread(data,size,1,fp);
 }
 
+void open_file_system(int* fd, char* boot_block){
+   *fd = open("testimage.ext2", O_RDONLY);
+   read(*fd, boot_block, 1024);
+}
+
+void read_super_block (int* fd, struct ext2_super_block* sp) {
+   read(*fd, sp, sizeof(struct ext2_super_block));
+}
