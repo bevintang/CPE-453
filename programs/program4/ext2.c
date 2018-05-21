@@ -8,21 +8,19 @@
 #include "ext2.h"
 
 //the block argument is in terms of SD card 512 byte sectors
-void read_data(uint32_t block, uint16_t offset, uint8_t* data, uint16_t size, FILE* fp) {
+void read_data(uint32_t block, uint16_t offset, uint8_t* data, uint16_t size) {
    if (offset > 511) {
       printf ("Offset greater than 511.\n");
       exit(0);
    }
 
-   fseek(fp,block*512 + offset,SEEK_SET);
-   fread(data,size,1,fp);
+   fseek(fp,block*512 + offset,SEEK_SET);	// set fp to a spot in disk
+   fread(data,size,1,fp);					// read fp and write to data ptr
 }
 
-void open_file_system(int* fd, char* boot_block){
-   *fd = open("testimage.ext2", O_RDONLY);
-   read(*fd, boot_block, 1024);
-}
+void read_super_block (uint8_t block_group, struct ext2_super_block* sp) {
+	size_t size = sizeof(struct ext2_super_block);
 
-void read_super_block (int* fd, struct ext2_super_block* sp) {
-   read(*fd, sp, sizeof(struct ext2_super_block));
+	// Read in super block for a specified Block Group for first half
+    read_data((block_group * BLOCK_GROUP_SIZE) + 2, 0, (uint8_t*)sp, size);
 }

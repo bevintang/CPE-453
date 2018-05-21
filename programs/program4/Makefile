@@ -1,5 +1,5 @@
-program_4: ext2.c ext2.h program4.c
-	gcc -Wall -o program_4 program4.c ext2.c ext2.h
+program_4: ext2.c program4.c
+	gcc -o program_4 -Wall program4.c ext2.c
 
 clean:
 	rm -f *.o *.a program_4

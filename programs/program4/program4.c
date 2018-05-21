@@ -8,13 +8,17 @@
 #include "ext2.h"
 
 int main(void) {
-   int fd;        // fd of file system
-   char boot_block[1024];
-   struct ext2_super_block super_block;
+   struct ext2_super_block sup_block;
 
-   open_file_system(&fd, boot_block);
-   read_super_block(&fd, &super_block);
-   printf("Blocks Count: %u\n", super_block.s_blocks_count);
+
+   fp = fopen("testimage.ext2", "r");
+   // uint8_t data[sizeof(struct ext2_super_block)];
+
+   read_super_block(3, &sup_block);
+   printf("Inodes Count: %u\n", sup_block.s_inodes_count);
+   printf("Blocks Count: %u\n", sup_block.s_blocks_count);
+   printf("Blocks/Group: %u\n", sup_block.s_blocks_per_group);
+   printf("Blocks  Size: %u\n", sup_block.s_log_block_size);
 
    return 0;
 }

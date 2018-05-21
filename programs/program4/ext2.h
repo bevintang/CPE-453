@@ -110,29 +110,29 @@ struct ext2_inode {
 struct ext2_super_block {
    uint32_t	s_inodes_count;		/* Inodes count */
    uint32_t	s_blocks_count;		/* Blocks count */
-   uint32_t	s_r_blocks_count;	/* Reserved blocks count */
+   uint32_t	s_r_blocks_count;	   /* Reserved blocks count */
    uint32_t	s_free_blocks_count;	/* Free blocks count */
    uint32_t	s_free_inodes_count;	/* Free inodes count */
    uint32_t	s_first_data_block;	/* First Data Block */
-   uint32_t	s_log_block_size;	/* Block size */
-   uint32_t	s_log_frag_size;	/* Fragment size */
+   uint32_t	s_log_block_size;	   /* Block size */
+   uint32_t	s_log_frag_size;	   /* Fragment size */
    uint32_t	s_blocks_per_group;	/* # Blocks per group */
    uint32_t	s_frags_per_group;	/* # Fragments per group */
    uint32_t	s_inodes_per_group;	/* # Inodes per group */
-   uint32_t	s_mtime;		/* Mount time */
-   uint32_t	s_wtime;		/* Write time */
-   uint16_t	s_mnt_count;		/* Mount count */
-   uint16_t	s_max_mnt_count;	/* Maximal mount count */
-   uint16_t	s_magic;		/* Magic signature */
-   uint16_t	s_state;		/* File system state */
-   uint16_t	s_errors;		/* Behavior when detecting errors */
+   uint32_t	s_mtime;		         /* Mount time */
+   uint32_t	s_wtime;		         /* Write time */
+   uint16_t	s_mnt_count;		   /* Mount count */
+   uint16_t	s_max_mnt_count;	   /* Maximal mount count */
+   uint16_t	s_magic;		         /* Magic signature */
+   uint16_t	s_state;		         /* File system state */
+   uint16_t	s_errors;		      /* Behavior when detecting errors */
    uint16_t	s_minor_rev_level; 	/* minor revision level */
-   uint32_t	s_lastcheck;		/* time of last check */
-   uint32_t	s_checkinterval;	/* max. time between checks */
-   uint32_t	s_creator_os;		/* OS */
-   uint32_t	s_rev_level;		/* Revision level */
-   uint16_t	s_def_resuid;		/* Default uid for reserved blocks */
-   uint16_t	s_def_resgid;		/* Default gid for reserved blocks */
+   uint32_t	s_lastcheck;		   /* time of last check */
+   uint32_t	s_checkinterval;	   /* max. time between checks */
+   uint32_t	s_creator_os;		   /* OS */
+   uint32_t	s_rev_level;		   /* Revision level */
+   uint16_t	s_def_resuid;		   /* Default uid for reserved blocks */
+   uint16_t	s_def_resgid;		   /* Default gid for reserved blocks */
 };
 
 /*
@@ -164,10 +164,14 @@ struct ext2_dir_entry {
 #define EXT2_S_IFCHR 0x2000   /* character device */
 #define EXT2_S_IFIFO 0x1000   /* fifo */
 
+#define BLOCK_GROUP_SIZE 8192*2
+
 
 /*
  * Program4 functions
  */
+FILE* fp;
+void read_data(uint32_t block, uint16_t offset, uint8_t* data, uint16_t size);
 void open_file_system(int* fd, char* boot_block);
-void read_super_block (int* fd, struct ext2_super_block* sp);
+void read_super_block (uint8_t block_group, struct ext2_super_block* sp);
 
