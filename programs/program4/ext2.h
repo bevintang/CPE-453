@@ -54,14 +54,14 @@ struct ext2_inode {
    uint16_t	i_mode;		/* File mode */
    uint16_t	i_uid;		/* Low 16 bits of Owner Uid */
    uint32_t	i_size;		/* Size in bytes */
-   uint32_t	i_atime;	/* Access time */
-   uint32_t	i_ctime;	/* Creation time */
-   uint32_t	i_mtime;	/* Modification time */
-   uint32_t	i_dtime;	/* Deletion Time */
+   uint32_t	i_atime;	   /* Access time */
+   uint32_t	i_ctime; 	/* Creation time */
+   uint32_t	i_mtime;	   /* Modification time */
+   uint32_t	i_dtime;	   /* Deletion Time */
    uint16_t	i_gid;		/* Low 16 bits of Group Id */
    uint16_t	i_links_count;	/* Links count */
    uint32_t	i_blocks;	/* Blocks count */
-   uint32_t	i_flags;	/* File flags */
+   uint32_t	i_flags;	   /* File flags */
    union {
       struct {
          uint32_t  l_i_reserved1;
